@@ -2,6 +2,7 @@ package com.hmdp.service.impl;
 
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSON;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.hmdp.dto.Result;
@@ -40,15 +41,24 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     private static final ExecutorService CACHE_REBUILD_EXECUTOR = Executors.newFixedThreadPool(10);
     @Override
     public Result queryById(Long id) {
-        // 利用互斥锁解决缓存击穿问题
-//        Shop shop = queryWithPassThrough(id);
-        // 利用逻辑过期使劲啊
-        Shop shop = queryThroughLogicalExpire(id);
-        if(shop == null) {
-            return Result.fail("没有找到店铺信息");
+        // 首先还是查询缓存
+        String key = CACHE_SHOP_KEY + id;
+        String json = stringRedisTemplate.opsForValue().get(key);
+        if(StrUtil.isNotBlank(json)) {
+            Shop shop = JSONUtil.toBean(json, Shop.class);
+            return Result.ok(shop);
         }
+        // 没有的可以到数据库查询
+        Shop shop = getById(id);
+        if(shop == null) {
+            return Result.fail("店铺信息不存在");
+        }
+        // 写入到缓存中
+        stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(shop));
+        // 返回数据给前端
         return Result.ok(shop);
     }
+
 
     @Override
     @Transactional  // 控制事务的原子性
