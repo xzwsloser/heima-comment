@@ -5,7 +5,7 @@ spring:
     name: hmdp
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/heima_comment?useSSL=false&serverTimezone=UTC
+    url: jdbc:mysql://127.0.0.1:3306/heima_comment?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
     password: 808453
   redis:
@@ -25,3 +25,4 @@ mybatis-plus:
 logging:
   level:
     com.hmdp: debug
+# 注意 yaml 文件中主要就是配置依赖相关的信息

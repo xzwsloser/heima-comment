@@ -109,33 +109,25 @@ public class LoginInterceptor implements HandlerInterceptor {
 ```
 - 拦截器配置方法
 ```java
-public class LoginInterceptor implements HandlerInterceptor {
-
+@Configuration
+public class MVCConfig implements WebMvcConfigurer {
+  @Resource
+  private StringRedisTemplate stringRedisTemplate;
   @Override
-  public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-    // 1. 获取 Session
-    HttpSession session = request.getSession();
-    // 2. 获取 session 中的用户
-    User user = (User)session.getAttribute("user");
-    // 3. 判断用户是否存在
-    if (user == null) {
-      // 4. 不存在就可以拦截
-      response.setStatus(401);  // 返回状态码
-      return false; // 表示拦截
-    }
-    // 5. 存在就可以保存到 ThreadLocal中
-
-    UserHolder.saveUser(BeanUtil.copyProperties(user,UserDTO.class));
-    // 6.最后放行就可以了
-    return true;
-  }
-
-  @Override
-  public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-    // 移除用户
-    UserHolder.removeUser();
+  public void addInterceptors(InterceptorRegistry registry) {
+    // 注意控制执行顺序
+    registry.addInterceptor(new LoginInterceptor()).excludePathPatterns(
+            "/user/code",
+            "/user/login",
+            "/upload/**",
+            "/blog/hot",
+            "/shop/**",
+            "/voucher/**"
+    ).order(1);    // 注意优先级越小先执行,只要把user放入到了 ThreadLocal里面才可以继续执行后面的步骤
+    registry.addInterceptor(new RefreshTokenInterceptor(stringRedisTemplate)).order(0);
   }
 }
+
 
 ```
 - controller层相关配置

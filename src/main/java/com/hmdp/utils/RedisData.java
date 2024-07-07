@@ -4,7 +4,7 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
-@Data
+@Data   // 逻辑过期时间和存储的数据
 public class RedisData {
     private LocalDateTime expireTime;
     private Object data;
