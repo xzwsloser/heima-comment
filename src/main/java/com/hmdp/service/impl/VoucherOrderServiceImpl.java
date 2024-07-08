@@ -9,13 +9,18 @@ import com.hmdp.service.ISeckillVoucherService;
 import com.hmdp.service.IVoucherOrderService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.utils.RedisWorker;
+import com.hmdp.utils.SimpleRedisLock;
 import com.hmdp.utils.UserHolder;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -31,6 +36,11 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     @Resource
     private ISeckillVoucherService seckillVoucherService;
     @Resource RedisWorker redisWorker;
+
+    @Resource
+    private RedissonClient redissonClient;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
     @Override
     @Transactional  // 注意涉及了两张表的操作,所以需要使用事务控制
     public Result seckillVoucher(Long voucherId) {
@@ -49,10 +59,24 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             return Result.fail("库存不足");
         }
         Long userId = UserHolder.getUser().getId();
-        synchronized (userId.toString().intern()) {
+        // 创建锁对象
+//        SimpleRedisLock lock = new SimpleRedisLock(stringRedisTemplate,"order:"+userId);
+        RLock lock = redissonClient.getLock("order:" + userId);
+        boolean flag = lock.tryLock();  //可以指定重试的最大等待时间,超时释放时间,没有参数就表示不尝试并且 30 s 就会过期
+        if(!flag) {
+            return Result.fail("不允许重复下单");
+        }
+
+//        synchronized (userId.toString().intern()) {
+        try {
             IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();
             return proxy.createVoucherOrder(voucherId);
+        } catch (IllegalStateException e) {
+            throw new RuntimeException(e);
+        } finally {
+            lock.unlock();
         }
+//        }
     }
     @Transactional  // 但是如果此时 锁就是 this,所以需要使用用户 id作为
     public  Result createVoucherOrder(Long voucherId) {

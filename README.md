@@ -37,3 +37,6 @@ service层中的方法首先在接口声明,一般和controller层中的对应�
 ## 商品查询缓存
 [shop_cache_query.md](note%2Fshop_cache_query.md)
 ## 优惠卷秒杀
+[voucher_second_kill.md](note%2Fvoucher_second_kill.md)
+## 分布式锁解决多服务器下的线程安全问题
+[distributed_lock_use.md](note%2Fdistributed_lock_use.md)
