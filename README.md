@@ -42,3 +42,5 @@ service层中的方法首先在接口声明,一般和controller层中的对应�
 [distributed_lock_use.md](note%2Fdistributed_lock_use.md)
 ## 秒杀业务的优化
 [improve_voucher_seckill.md](note%2Fimprove_voucher_seckill.md)
+## 利用 Redis 消息队列优化秒杀业务
+[improve_mes_que.md](note%2Fimprove_mes_que.md)
