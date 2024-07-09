@@ -40,3 +40,5 @@ service层中的方法首先在接口声明,一般和controller层中的对应�
 [voucher_second_kill.md](note%2Fvoucher_second_kill.md)
 ## 分布式锁解决多服务器下的线程安全问题
 [distributed_lock_use.md](note%2Fdistributed_lock_use.md)
+## 秒杀业务的优化
+[improve_voucher_seckill.md](note%2Fimprove_voucher_seckill.md)
