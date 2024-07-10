@@ -49,3 +49,6 @@ service层中的方法首先在接口声明,一般和controller层中的对应�
 ## 好友关注功能实现
 [make_good_friend.md](note%2Fmake_good_friend.md)
 ## 附近商铺功能
+[near_shop_search.md](note%2Fnear_shop_search.md)
+## 用户签到功能
+[user_enter_record.md](note%2Fuser_enter_record.md)

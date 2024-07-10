@@ -12,14 +12,19 @@ import com.hmdp.entity.User;
 import com.hmdp.mapper.UserMapper;
 import com.hmdp.service.IUserService;
 import com.hmdp.utils.RegexUtils;
+import com.hmdp.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSession;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -98,6 +103,58 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         //8 最后返回 token 给前端
 
         return Result.ok(token);  // 这里不需要返回用户凭证,原因就是已经存储到了 session中,但是返回一个用户凭证那么前端就可以重新重定向页面
+    }
+
+    @Override
+    public Result sign() {
+        // 1. 获取登录的用户
+        Long userId = UserHolder.getUser().getId();
+        // 2. 获取日期
+        LocalDateTime now = LocalDateTime.now();
+        // 4. 获取日期
+        // 3. 拼接 key
+        String format = now.format(DateTimeFormatter.ofPattern(":yyyyMM"));
+        String key = USER_SIGN_KEY + userId + format;
+        // 5. 写入 Redis中
+        int day = now.getDayOfMonth();
+        stringRedisTemplate.opsForValue().setBit(key,day - 1,true);
+        return Result.ok();
+    }
+
+    @Override
+    public Result countSign() {
+        // 1. 获取登录的用户
+        Long userId = UserHolder.getUser().getId();
+        // 2. 获取日期
+        LocalDateTime now = LocalDateTime.now();
+        // 4. 获取日期
+        // 3. 拼接 key
+        String format = now.format(DateTimeFormatter.ofPattern(":yyyyMM"));
+        String key = USER_SIGN_KEY + userId + format;
+        // 5. 写入 Redis中
+        int day = now.getDayOfMonth();
+        List<Long> results = stringRedisTemplate.opsForValue().bitField(key,
+                BitFieldSubCommands.create()
+                        .get(BitFieldSubCommands.BitFieldType.unsigned(day)).valueAt(0));
+        // 从 Redis中查询到截至当前日期的bit位,之后就可以进行遍历算法了,就是不断和 1 做 & 运算之后进行右移就可以了
+        if(results == null || results.isEmpty()) {
+            return Result.ok(0);
+        }
+        Long num = results.get(0);
+        if(num == null || num == 0) {
+            return Result.ok(0);
+        }
+        // 循环遍历
+        int count = 0;
+        while(true) {
+            if ((num & 1) ==0) {
+                break;
+            } else {
+                count ++;
+            }
+            num >>>= 1;  // 表示最后的右移
+        }
+        return Result.ok(count);
     }
 
     private User createUserWithPhone(String phone) {
