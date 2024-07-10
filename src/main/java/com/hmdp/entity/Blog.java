@@ -53,7 +53,7 @@ public class Blog implements Serializable {
     /**
      * 是否点赞过了
      */
-    @TableField(exist = false)
+    @TableField(exist = false)   // 注意这一个注解表示不存在在数据库表中,不会映射到数据库表中
     private Boolean isLike;
 
     /**

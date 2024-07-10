@@ -44,3 +44,5 @@ service层中的方法首先在接口声明,一般和controller层中的对应�
 [improve_voucher_seckill.md](note%2Fimprove_voucher_seckill.md)
 ## 利用 Redis 消息队列优化秒杀业务
 [improve_mes_que.md](note%2Fimprove_mes_que.md)
+## 达人探店
+[publish_shop_note.md](note%2Fpublish_shop_note.md)
