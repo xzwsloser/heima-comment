@@ -47,3 +47,5 @@ service层中的方法首先在接口声明,一般和controller层中的对应�
 ## 达人探店
 [publish_shop_note.md](note%2Fpublish_shop_note.md)
 ## 好友关注功能实现
+[make_good_friend.md](note%2Fmake_good_friend.md)
+## 附近商铺功能
